@@ -2,7 +2,7 @@
 
 Visor interactivo, autocontenido y sin dependencias de compilación, para estimar la tendencia, extraer el ciclo y fechar los puntos de giro del PIB trimestral del INDEC, del Estimador Mensual de Actividad Económica (EMAE) como serie coincidente y del Índice Líder de la Universidad Torcuato Di Tella, según las tres nociones de ciclo de la literatura: clásico, de crecimiento y de tasas (Harding y Pagan, 2002; Zarnowitz y Ozyildirim, 2006).
 
-**[▶ Abrir el visor](https://fcontiggiani.github.io/ciclo-argentina/)**
+**[▶ Abrir el visor](https://fcontiggiani.github.io/ciclo-argentina/ciclos.html)**
 
 ![Captura del visor de ciclos de la economía argentina, mostrando el panel de controles (series, ventana de datos, método de tendencia y tipo de ciclo) y los paneles del PIB y del EMAE en el ciclo de crecimiento, con los picos y valles fechados y las contracciones sombreadas](screenshot-visor.png)
 
