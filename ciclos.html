@@ -697,20 +697,27 @@ if (typeof module !== "undefined") module.exports = Ciclo;
   }
 
   function tooltip(ps, paneles) {
+    // Con el puntero vinculado entre paneles, ps trae los puntos de todas las series en la fecha señalada:
+    // se arma un bloque por serie, cada uno con su propio nombre, período, valor, tendencia y unidad.
     if (!ps || !ps.length) return "";
-    const clave = ps[0].seriesId.split("|")[0];
-    const a = paneles.find(x => x.clave === clave);
-    if (!a) return "";
-    const d = new Date(ps[0].value[0]);
-    const k = d.getUTCFullYear() * 12 + d.getUTCMonth();
-    const giro = a.giros.find(g => g.mes === k);
-    const filas = ps.filter(p => p.seriesType === "line").map(p => {
-      const nombre = p.seriesId.endsWith("tend") ? "Tendencia" : a.s.nombre;
-      return `<div style="display:flex;justify-content:space-between;gap:16px"><span>${p.marker}${nombre}</span><b style="font-family:var(--f-mono)">${fmtValor(p.value[1])}</b></div>`;
+    const mesDe = t => { const d = new Date(t); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
+    const bloques = paneles.map(a => {
+      const propias = ps.filter(p => p.seriesType === "line" && p.seriesId.split("|")[0] === a.clave);
+      const serie = propias.find(p => p.seriesId.endsWith("|serie"));
+      if (!serie || !Number.isFinite(serie.value[1])) return "";
+      const tend = propias.find(p => p.seriesId.endsWith("|tend"));
+      const k = mesDe(serie.value[0]);
+      const giro = a.giros.find(g => g.mes === k);
+      const marca = giro ? ` · <b>${giro.tipo === "P" ? "▼ pico" : "△ valle"}</b>` : "";
+      const tendTxt = estado.ciclo !== "crecimiento" && tend && Number.isFinite(tend.value[1]) ? `<span style="color:var(--muted)">tendencia ${fmtValor(tend.value[1])}</span>` : "";
+      return `<div style="margin-top:6px">
+        <div style="display:flex;justify-content:space-between;gap:16px"><span>${serie.marker}<b>${a.s.nombre}</b></span><span style="color:var(--muted)">${etiqueta(k, a.s.frecuencia)}</span></div>
+        <div style="display:flex;justify-content:space-between;gap:16px;padding-left:14px"><span style="font-family:var(--f-mono)">${fmtValor(serie.value[1])}${marca}</span>${tendTxt}</div>
+        <div style="padding-left:14px;color:var(--muted);font-size:11px">${unidadVista(a.s)}</div>
+      </div>`;
     }).join("");
-    const extra = giro ? `<div style="margin-top:4px"><b>${giro.tipo === "P" ? "▼ Pico" : "△ Valle"}</b> (Bry–Boschan)</div>` : "";
-    return `<div style="font-weight:600;margin-bottom:4px">${etiqueta(k, a.s.frecuencia)}</div>${filas}${extra}
-      <div style="margin-top:6px;color:var(--muted);font-size:11px">${unidadVista(a.s)}<br>Fuente: ${a.s.fuente.split(",")[0]}</div>`;
+    if (!bloques) return "";
+    return `<div style="font-weight:600">${etiqueta(mesDe(ps[0].axisValue), "M")}</div>${bloques}`;
   }
 
   /* ---- Resultados: estadísticas, tabla de giros y concordancia ---------- */
@@ -898,7 +905,7 @@ if (typeof module !== "undefined") module.exports = Ciclo;
     requestAnimationFrame(() => {
       pendiente = false;
       textos();
-      const analisis = CLAVES.filter(c => estado.ver[c]).map(analizarSerie);
+      const analisis = CLAVES.filter(c => estado.ver[c]).map(c => analizarSerie(c));
       dibujar(analisis);
       $("resultados").innerHTML = analisis.map(tarjeta).join("") + concordancia(analisis);
       $("contraste").innerHTML = contraste();

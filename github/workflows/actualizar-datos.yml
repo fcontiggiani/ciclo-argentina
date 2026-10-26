@@ -1,0 +1,34 @@
+# Actualiza mensualmente las series del INDEC, regenera data/series.json e incrusta los datos en index.html
+name: Actualizar datos
+
+on:
+  schedule:
+    - cron: "0 12 25 * *"   # Día 25 de cada mes, 12:00 UTC
+  workflow_dispatch:         # Permite ejecutarlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write            # Necesario para hacer commit de los datos
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Descargar series, regenerar el JSON e incrustarlo en index.html
+        run: python scripts/actualizar_datos.py
+      - name: Commit si hubo cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ index.html
+          if git diff --cached --quiet; then
+            echo "Sin cambios en los datos."
+          else
+            git commit -m "Actualiza datos ($(date -u +%Y-%m-%d))"
+            git push
+          fi
